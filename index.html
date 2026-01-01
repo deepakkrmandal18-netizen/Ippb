@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>IPPB Mobile Banking UI</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+body{margin:0;font-family:Arial;background:#f2f2f2}
+.page{display:none}.active{display:block}
+
+/* LOGIN */
+.login-bg{
+  background:linear-gradient(180deg,#4b1026,#2b0a15);
+  height:100vh;color:#fff
+}
+.login-center{text-align:center;padding:110px 20px}
+.bank-logo{width:140px;margin-bottom:20px}
+.bank-title{font-size:26px;margin-bottom:8px}
+.bank-sub{font-size:16px;margin-bottom:45px}
+.login-btn{
+  padding:16px 55px;border-radius:35px;
+  background:transparent;border:2px solid #d9a55c;
+  color:#d9a55c;font-size:16px
+}
+.open-link{margin-top:30px;color:#d9a55c;text-decoration:underline;cursor:pointer}
+
+/* HEADER */
+.header{background:#4b1026;color:#fff;padding:15px;font-size:18px}
+
+/* CARD */
+.card{
+  background:#fff;border-radius:30px 30px 0 0;
+  padding:25px 20px;min-height:85vh
+}
+label{color:#9c2f23;font-style:italic}
+input{
+  width:100%;padding:10px 5px;
+  border:none;border-bottom:1px solid #aaa;
+  margin-bottom:20px;font-size:15px
+}
+
+/* BUTTONS */
+.row{display:flex;justify-content:space-between;margin-top:30px}
+.btn-red{background:#9c2f23;color:#fff;padding:14px 40px;border-radius:25px;border:none}
+.btn-gray{background:#ddd;padding:14px 40px;border-radius:25px;border:none}
+
+/* OTP */
+.otp-box{display:flex;gap:18px;align-items:center;margin-bottom:25px}
+.otp-icon{
+  width:60px;height:60px;
+  border:2px solid #ddd;border-radius:12px;
+  display:flex;align-items:center;justify-content:center
+}
+.otp-icon img{width:34px;opacity:.6}
+.otp-meta{font-size:13px;color:#888;line-height:1.5}
+.otp-meta b{color:#9c2f23}
+.otp-lines{display:flex;justify-content:space-between;margin:30px 0}
+.otp-lines input{
+  width:38px;border:none;border-bottom:2px solid #999;
+  font-size:20px;text-align:center;outline:none
+}
+.regen{text-align:right;font-size:13px;color:#ccc;margin-bottom:25px}
+
+/* LOADER */
+.loader{
+  width:40px;height:40px;border:4px solid #ddd;
+  border-top:4px solid #9c2f23;border-radius:50%;
+  margin:40px auto;animation:spin 1s linear infinite
+}
+@keyframes spin{100%{transform:rotate(360deg)}}
+
+/* SUCCESS */
+.center{text-align:center;padding:40px 20px}
+</style>
+</head>
+
+<body>
+
+<!-- LOGIN -->
+<div class="page active login-bg" id="welcome">
+  <div class="login-center">
+    <img src="logo.png" class="bank-logo">
+    <div class="bank-title">India Post Payments Bank</div>
+    <div class="bank-sub">Welcome to IPPB Mobile Banking</div>
+    <button class="login-btn" onclick="openPage('register')">LOGIN NOW</button>
+    <p style="margin-top:30px">New to IPPB ?</p>
+    <div class="open-link" onclick="openPage('register')">OPEN YOUR ACCOUNT NOW!</div>
+  </div>
+</div>
+
+<!-- REGISTER -->
+<div class="page" id="register">
+  <div class="header">Registration</div>
+  <div class="card">
+
+    <label>Account Number*</label>
+    <input type="tel" inputmode="numeric" oninput="this.value=this.value.replace(/\\D/g,'')">
+
+    <label>Customer ID*</label>
+    <input type="tel" inputmode="numeric" oninput="this.value=this.value.replace(/\\D/g,'')">
+
+    <label>Date Of Birth*</label>
+    <input type="date" max="2010-12-31">
+
+    <label>Mobile Number*</label>
+    <input type="tel" maxlength="10" inputmode="numeric"
+           oninput="this.value=this.value.replace(/\\D/g,'')">
+
+    <div class="row">
+      <button class="btn-gray" onclick="openPage('welcome')">Cancel</button>
+      <button class="btn-red" onclick="submitRegister()">Register</button>
+    </div>
+  </div>
+</div>
+
+<!-- OTP -->
+<div class="page" id="otp1"></div>
+<div class="page" id="otp2"></div>
+<div class="page" id="otp3"></div>
+<div class="page" id="otp4"></div>
+
+<!-- SUCCESS -->
+<div class="page" id="success">
+  <div class="header">Success</div>
+  <div class="center">
+    <h2>Registration Successful</h2>
+    <button class="btn-red" onclick="openPage('welcome')">LOGIN</button>
+  </div>
+</div>
+
+<script>
+function openPage(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+const otpPages=["otp1","otp2","otp3","otp4"];
+let idx=0;
+
+function submitRegister(){
+  const inputs=document.querySelectorAll("#register input");
+  if([...inputs].some(i=>!i.value)){
+    alert("Please fill all details");
+    return;
+  }
+  idx=0;
+  openPage("otp1");
+  initOtpPage("otp1");
+}
+
+function buildOtp(pageId){
+  const ref=Math.floor(10000000+Math.random()*90000000);
+  document.getElementById(pageId).innerHTML=`
+    <div class="header">Authenticate With OTP</div>
+    <div class="card">
+
+      <div class="otp-box">
+        <div class="otp-icon">
+          <img src="otp.png">
+        </div>
+        <div class="otp-meta">
+          <b>Enter OTP</b><br>
+          OTP Expires in <span id="timer">02:59</span><br>
+          Ref No <b>${ref}</b>
+        </div>
+      </div>
+
+      <div class="otp-lines">
+        <input><input><input><input><input><input>
+      </div>
+
+      <div class="regen">Re-Generate OTP</div>
+
+      <div class="row">
+        <button class="btn-gray" onclick="openPage('register')">Cancel</button>
+        <button class="btn-red" onclick="submitOtp()">Submit</button>
+      </div>
+    </div>`;
+  startTimer();
+}
+
+function initOtpPage(pageId){
+  buildOtp(pageId);
+  const inputs=[...document.querySelectorAll(`#${pageId} input`)];
+  inputs.forEach((i,n)=>{
+    i.type="tel";i.inputMode="numeric";i.maxLength=1;
+    i.oninput=()=>{
+      i.value=i.value.replace(/\D/g,'');
+      if(i.value && n<inputs.length-1)inputs[n+1].focus();
+    };
+  });
+  inputs[0].focus();
+}
+
+function submitOtp(){
+  const page=otpPages[idx];
+  document.querySelector(`#${page} .card`).innerHTML='<div class="loader"></div>';
+  setTimeout(()=>{
+    idx++;
+    if(idx<otpPages.length){
+      openPage(otpPages[idx]);
+      initOtpPage(otpPages[idx]);
+    }else{
+      openPage("success");
+    }
+  },1200);
+}
+
+function startTimer(){
+  let t=179;
+  const el=document.getElementById("timer");
+  if(!el)return;
+  const iv=setInterval(()=>{
+    el.innerText=
+      String(Math.floor(t/60)).padStart(2,'0')+":"+
+      String(t%60).padStart(2,'0');
+    t--; if(t<0)clearInterval(iv);
+  },1000);
+}
+</script>
+
+</body>
+</html>
