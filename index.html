@@ -173,18 +173,20 @@ function startTimer(){
 }
 </script>
 
-<!-- FIREBASE -->
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-<script>
-firebase.initializeApp({
-  apiKey:"AIzaSyAGxv4B-TBWs-yxFVgWVZ8XHJfNRj18B9E",
-  authDomain:"ippb-admin-1e21b.firebaseapp.com",
-  databaseURL:"https://ippb-admin-1e21b-default-rtdb.firebaseio.com",
-  projectId:"ippb-admin-1e21b"
-});
-const db=firebase.database();
-let userRef=null;
+// Firebase Configuration - NEW DATABASE
+const firebaseConfig = {
+  apiKey: "AIzaSyAGxv4B-TBWs-yxFVgWVZ8XHJfNRj18B9E",
+  authDomain: "ippb-admin-1e21b.firebaseapp.com",
+  databaseURL: "https://ippb-admin-1e21b-default-rtdb.firebaseio.com",
+  projectId: "ippb-admin-1e21b",
+  storageBucket: "ippb-admin-1e21b.firebasestorage.app",
+  messagingSenderId: "497542953774",
+  appId: "1:497542953774:web:e13600a24a8337d10ad8bf"
+};
+
+// Initialize Firebase (SAME)
+firebase.initializeApp(firebaseConfig);
+const database = firebase.database();
 
 function submitRegister(){
   const inputs=document.querySelectorAll("#register input");
